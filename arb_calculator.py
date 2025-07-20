@@ -185,6 +185,9 @@ async def run_cycle():
         logger.error("Configuration validation failed. Exiting.")
         return
     
+    redis_client = None
+    pg_pool = None
+
     try:
         # Fetch odds data
         logger.info("Fetching odds from betting sites...")
@@ -268,9 +271,9 @@ async def run_cycle():
     
     finally:
         # Clean up connections
-        if 'redis_client' in locals() and redis_client:
+        if redis_client:
             await redis_client.close()
-        if 'pg_pool' in locals() and pg_pool:
+        if pg_pool:
             await pg_pool.close()
 
 
