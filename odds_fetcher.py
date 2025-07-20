@@ -4,7 +4,7 @@ import logging
 import time
 import re
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
-from typing import List, Dict, Optional
+from typing import List, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -40,41 +40,6 @@ async def fetch_toto() -> List[Dict]:
         return []
 
     return await fetch_odds(URL_TOTO, "toto")
-
-def generate_mock_odds(site: str) -> List[Dict]:
-    """Generate mock odds data for testing when URLs are not configured."""
-    import random
-    import time
-
-    mock_matches = [
-        {"player_A": "Novak Djokovic", "player_B": "Rafael Nadal"},
-        {"player_A": "Carlos Alcaraz", "player_B": "Daniil Medvedev"},
-        {"player_A": "Stefanos Tsitsipas", "player_B": "Alexander Zverev"},
-    ]
-
-    odds_data = []
-    for i, match in enumerate(mock_matches, 1):
-        # Generate slightly different odds for each site to create potential arbitrage
-        base_odds_a = round(random.uniform(1.5, 3.0), 2)
-        base_odds_b = round(random.uniform(1.5, 3.0), 2)
-
-        # Adjust odds slightly based on site
-        if site == "toto":
-            base_odds_a *= random.uniform(0.95, 1.05)
-            base_odds_b *= random.uniform(0.95, 1.05)
-
-        odds_data.append({
-            'match_id': f"mock_match_{i}",
-            'player_A': match['player_A'],
-            'player_B': match['player_B'],
-            'odds_A': round(base_odds_a, 2),
-            'odds_B': round(base_odds_b, 2),
-            'timestamp': str(int(time.time())),
-            'site': site
-        })
-
-    logger.info(f"Generated {len(odds_data)} mock odds for {site}")
-    return odds_data
 
 async def fetch_odds(url: str, site: str) -> List[Dict]:
     """
