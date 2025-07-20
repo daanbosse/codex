@@ -2,6 +2,7 @@ import asyncio
 import os
 import logging
 import time
+import re
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 from typing import List, Dict, Optional
 
@@ -194,10 +195,47 @@ async def parse_bet365_html(page) -> List[Dict]:
             logger.info(f"Page body content preview: {body_content}")
             return []
         
-        # For now, return empty list until we can inspect the actual HTML structure
-        logger.info("Bet365 HTML parsing needs manual inspection of the page structure")
-        return []
-        
+        odds_data: List[Dict] = []
+        for idx, match in enumerate(matches):
+            try:
+                text = (await match.inner_text()).strip()
+                if not text:
+                    continue
+
+                # Attempt to extract players in "A v B" or "A vs B" format
+                player_match = re.search(r"([A-Za-z .'-]+)\s+v(?:s)?\.?\s+([A-Za-z .'-]+)", text, re.IGNORECASE)
+                if not player_match:
+                    continue
+                player_A = player_match.group(1).strip()
+                player_B = player_match.group(2).strip()
+
+                # Extract numeric odds from the text
+                odds = re.findall(r"\d+(?:\.\d+)?", text)
+                if len(odds) < 2:
+                    continue
+                odds_A = float(odds[0])
+                odds_B = float(odds[1])
+
+                match_id = await match.get_attribute('data-fixtureid')
+                if not match_id:
+                    match_id = await match.get_attribute('id') or f"bet365_{idx}"
+
+                odds_data.append({
+                    'match_id': match_id,
+                    'player_A': player_A,
+                    'player_B': player_B,
+                    'odds_A': odds_A,
+                    'odds_B': odds_B,
+                    'timestamp': str(int(time.time())),
+                    'site': 'bet365'
+                })
+            except Exception as e:
+                logger.debug(f"Failed to parse a bet365 match element: {e}")
+                continue
+
+        logger.info(f"Parsed {len(odds_data)} bet365 matches")
+        return odds_data
+
     except Exception as e:
         logger.error(f"Error parsing bet365 HTML: {e}")
         return []
@@ -248,10 +286,45 @@ async def parse_toto_html(page) -> List[Dict]:
             logger.info(f"Page body content preview: {body_content}")
             return []
         
-        # For now, return empty list until we can inspect the actual HTML structure
-        logger.info("Toto HTML parsing needs manual inspection of the page structure")
-        return []
-        
+        odds_data: List[Dict] = []
+        for idx, match in enumerate(matches):
+            try:
+                text = (await match.inner_text()).strip()
+                if not text:
+                    continue
+
+                player_match = re.search(r"([A-Za-z .'-]+)\s+v(?:s)?\.?\s+([A-Za-z .'-]+)", text, re.IGNORECASE)
+                if not player_match:
+                    continue
+                player_A = player_match.group(1).strip()
+                player_B = player_match.group(2).strip()
+
+                odds = re.findall(r"\d+(?:\.\d+)?", text)
+                if len(odds) < 2:
+                    continue
+                odds_A = float(odds[0])
+                odds_B = float(odds[1])
+
+                match_id = await match.get_attribute('data-event-id')
+                if not match_id:
+                    match_id = await match.get_attribute('id') or f"toto_{idx}"
+
+                odds_data.append({
+                    'match_id': match_id,
+                    'player_A': player_A,
+                    'player_B': player_B,
+                    'odds_A': odds_A,
+                    'odds_B': odds_B,
+                    'timestamp': str(int(time.time())),
+                    'site': 'toto'
+                })
+            except Exception as e:
+                logger.debug(f"Failed to parse a toto match element: {e}")
+                continue
+
+        logger.info(f"Parsed {len(odds_data)} toto matches")
+        return odds_data
+
     except Exception as e:
         logger.error(f"Error parsing toto HTML: {e}")
         return []
