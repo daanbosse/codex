@@ -39,7 +39,7 @@ def validate_configuration():
     logger.info("All required environment variables are configured")
     return True
 
-async def compute_arbitrage(odds_list1: List[Dict], odds_list2: List[Dict]) -> List[Dict]:
+def compute_arbitrage(odds_list1: List[Dict], odds_list2: List[Dict]) -> List[Dict]:
     """
     Calculate arbitrage opportunities between two lists of odds.
     Returns a list of dictionaries with match_id and arbitrage percentage if found.
@@ -213,7 +213,7 @@ async def run_cycle():
         logger.info(f"Fetched {len(bet365_odds)} Bet365 odds and {len(toto_odds)} Toto odds")
         
         # Compute arbitrage opportunities
-        alerts = await compute_arbitrage(bet365_odds, toto_odds)
+        alerts = compute_arbitrage(bet365_odds, toto_odds)
         
         if not alerts:
             logger.info("No arbitrage opportunities found")
