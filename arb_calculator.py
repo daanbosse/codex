@@ -6,7 +6,7 @@ import asyncpg
 import aiohttp
 import logging
 from typing import List, Dict, Optional
-from odds_fetcher import fetch_bet365, fetch_toto
+from odds_fetcher import fetch_bet365, fetch_toto, URL_BET365, URL_TOTO
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -18,15 +18,19 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 DISCORD_WEBHOOK = os.getenv('DISCORD_WEBHOOK')
 
 def validate_configuration():
-    """Validate that all required environment variables are set."""
+    """Validate that all required environment variables, including betting site URLs, are set."""
     missing_vars = []
-    
+
     if not REDIS_URL:
         missing_vars.append('REDIS_URL')
     if not DATABASE_URL:
         missing_vars.append('DATABASE_URL')
     if not DISCORD_WEBHOOK:
         missing_vars.append('DISCORD_WEBHOOK')
+    if not URL_BET365:
+        missing_vars.append('URL_BET365')
+    if not URL_TOTO:
+        missing_vars.append('URL_TOTO')
     
     if missing_vars:
         logger.error(f"Missing required environment variables: {', '.join(missing_vars)}")
