@@ -267,4 +267,8 @@ async def run_cycle():
         if 'redis_client' in locals() and redis_client:
             await redis_client.close()
         if 'pg_pool' in locals() and pg_pool:
-            await pg_pool.close() 
+            await pg_pool.close()
+
+
+if __name__ == "__main__":
+    asyncio.run(run_cycle())
